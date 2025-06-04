@@ -1,0 +1,131 @@
+version: '3.8'
+
+services:
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password
+    command: ["server", "/data", "--console-address", ":9001"]
+    volumes:
+      - ./data/minio:/data
+    networks:
+      - data-lakehouse
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+      POSTGRES_MULTIPLE_DATABASES: analytics,openmetadata_db
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - data-lakehouse
+
+  airflow:
+    image: apache/airflow:2.7.3
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    volumes:
+      - ./src/mercury/dags:/opt/airflow/dags
+      - ./src/mercury/spark-apps:/opt/spark-apps
+      - ./contracts:/etc/contracts
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "airflow db init && airflow webserver"
+    networks:
+      - data-lakehouse
+
+  spark:
+    image: bitnami/spark:3.5.0
+    environment:
+      - SPARK_MODE=master
+    ports:
+      - "8081:8081"
+      - "10000:10000"
+    volumes:
+      - .src/mercury/spark-apps:/opt/spark-apps
+      - ./contracts:/etc/contracts
+    networks:
+      - data-lakehouse
+
+  spark-worker:
+    image: bitnami/spark:3.5.0
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+    depends_on:
+      - spark
+    volumes:
+      - ./src/mercury/spark-apps:/opt/spark-apps
+      - ./contracts:/etc/contracts
+    networks:
+      - data-lakehouse
+
+  dbt:
+    image: python:3.9
+    command: >
+      bash -c "pip install dbt-core dbt-spark dbt-postgres && dbt init my_project && tail -f /dev/null"
+    volumes:
+      - ./src/mercury/dbt:/dbt
+      - ./contracts:/etc/contracts
+    depends_on:
+      - spark
+      - postgres
+    networks:
+      - data-lakehouse
+
+  jupyter:
+    image: jupyter/pyspark-notebook:latest
+    ports:
+      - "8888:8888"
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - ./contracts:/etc/contracts
+    depends_on:
+      - spark
+      - postgres
+      - trino
+    command: >
+      bash -c "pip install trino && start-notebook.sh"
+    networks:
+      - data-lakehouse
+
+  data-ingestion:
+    image: python:3.9
+    command: >
+      bash -c "pip install requests kafka-python boto3 pydantic && python /opt/scripts/appsflyer_pull.py"
+    volumes:
+      - ./src/mercury/python-apps:/opt/scripts
+      - ./contracts:/etc/contracts
+    depends_on:
+      - kafka
+      - minio
+    environment:
+      - APPSFLYER_API_TOKEN=your-appsflyer-api-token
+      - APPSFLYER_APP_ID=your-app-id
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_ENDPOINT_URL=http://minio:9000
+    networks:
+      - data-lakehouse
+
+volumes:
+  minio-data:
+  postgres-data:
+
+networks:
+  data-lakehouse:
+    driver: bridge

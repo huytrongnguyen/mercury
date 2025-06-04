@@ -36,8 +36,8 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     volumes:
-      - ./src/mercury/dags:/opt/airflow/dags
-      - ./src/mercury/spark-apps:/opt/spark-apps
+      - ./dags:/opt/airflow/dags
+      - ./spark-apps:/opt/spark-apps
       - ./contracts:/etc/contracts
     ports:
       - "8080:8080"
@@ -54,7 +54,7 @@ services:
       - "8081:8081"
       - "10000:10000"
     volumes:
-      - .src/mercury/spark-apps:/opt/spark-apps
+      - ./spark-apps:/opt/spark-apps
       - ./contracts:/etc/contracts
     networks:
       - data-lakehouse
@@ -67,7 +67,7 @@ services:
     depends_on:
       - spark
     volumes:
-      - ./src/mercury/spark-apps:/opt/spark-apps
+      - ./spark-apps:/opt/spark-apps
       - ./contracts:/etc/contracts
     networks:
       - data-lakehouse
@@ -77,7 +77,7 @@ services:
     command: >
       bash -c "pip install dbt-core dbt-spark dbt-postgres && dbt init my_project && tail -f /dev/null"
     volumes:
-      - ./src/mercury/dbt:/dbt
+      - ./dbt:/dbt
       - ./contracts:/etc/contracts
     depends_on:
       - spark
@@ -108,7 +108,7 @@ services:
     command: >
       bash -c "pip install requests kafka-python boto3 pydantic && python /opt/scripts/appsflyer_pull.py"
     volumes:
-      - ./src/mercury/python-apps:/opt/scripts
+      - ./python-apps:/opt/scripts
       - ./contracts:/etc/contracts
     depends_on:
       - kafka

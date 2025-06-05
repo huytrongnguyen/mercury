@@ -1,7 +1,7 @@
 {
   "source": [{
     "type": "api",
-    "location": "https://hq1.appsflyer.com/api/raw-data/export/app/{app_id}/installs_report/v5",
+    "location": "https://hq1.appsflyer.com/api/raw-data/export/app/{{app_id}}/in_app_events_report/v5",
     "params": {
       "header": {
         "accept": "text/csv"
@@ -11,7 +11,11 @@
         "to": "{event_date}",
         "additional_fields": "device_model,campaign_type,conversion_type"
       }
-    },
+    }
+  }],
+  "dest": [{
+    "type": "s3",
+    "location": "/raw/{{app_id}}/appsflyer/in_app_events_report/{{event_date}}",
     "columns": [
       {"name": "attributed_touch_type"},
       {"name": "attributed_touch_time", "type": "timestamp"},
@@ -98,8 +102,5 @@
       {"name": "campaign_type"},
       {"name": "conversion_type"}
     ]
-  }],
-  "dest": [{
-    "type": "iceberg"
   }]
 }

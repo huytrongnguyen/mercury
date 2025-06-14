@@ -26,8 +26,20 @@ mercury/
 └── README.md                     # Setup instructions
 ```
 
-## How to start on MacOS
+## Start the Services
 
-- Run `colima start --vm-type=vz`
+- Run `colima start --cpu 4 --memory 4 --disk 64 --vm-type=qemu` (for MacOS)
 - Run `docker-compose down -v --remove-orphans`
 - Run `docker-compose up -d --build`
+
+This starts:
+- Spark Master (accessible at http://localhost:8080)
+- Spark Worker
+- MinIO (accessible at http://localhost:9000 for API, http://localhost:9001 for console)
+- Log in to MinIO console with admin/password and create a bucket named `mercury` (first time only).
+  - Submit `spark-minio-job.py` for testing
+    ```sh
+    docker exec -it spark-master spark-submit \
+    --master spark://spark-master:7077 \
+    /opt/bitnami/spark/apps/sample/spark-minio-job.py
+    ```

@@ -1,3 +1,6 @@
 .DS_Store
 data
-airflow/logs
+jobs/spark/conf/*
+!jobs/spark/conf/spark-defaults.conf
+jobs/spark/libs/*
+logs

@@ -11,19 +11,41 @@
 
 ```
 mercury/
+└── README.md                               # Setup instructions
+├── docker-compose.yml                      # Docker Compose configuration
+├── images/                                 # All Dockerfiles + init-sh (starter) scripts
 ├── airflow/
 |   ├── dags/
-|   |   └── sample_bi.py          # Generates DAGs per app_id
-|   ├── logs/                         # Airflow logs
-|   └── plugins/                      # Airflow plugins (optional)
-├── jobs/
-│   ├── crawler.py                # Script to craw data from API and save to MinIO
-│   └── spark_processing.py       # PySpark script to process data into Iceberg/MinIO
-├── jars/
-│   └── (Iceberg JAR downloaded)  # Iceberg runtime JAR
-├── images/                       # All Dockerfiles + init-sh (starter) scripts
-├── docker-compose.yml            # Docker Compose configuration
-└── README.md                     # Setup instructions
+|   |   └── sample_bi.py                    # Generates DAGs per app_id
+|   ├── config/                             # Airflow config
+|   |       └── airflow.cfg
+|   ├── logs/                               # Airflow logs
+|   └── plugins/                            # Airflow plugins (optional)
+├── spark/
+|   ├── config/
+|   |       └── spark-defaults.conf
+|   └── libs/
+│       ├── aws-java-sdk-bundle-1.12.761.jar
+│       ├── hadoop-aws-3.3.4.jar
+│       └── iceberg-spark-runtime-3.5_2.12-1.4.3.jar
+└── jobs/
+    ├── python/
+    |   └── appsflyer-puller/
+    │       ├── crawler.py                  # Script to craw data from API and save to MinIO
+    |       └── Dockerfile
+    ├── dbt/
+    |   └── smart_view/
+    │       ├── dbt_project.yml
+    │       ├── profiles.yml
+    |       └── models/
+    │           ├── sources.yml
+    │           ├── schema.yml
+    │           ├── standardize/
+    │           ├── golden/
+    |           └── marts/
+    └── spark
+        ├── spark-minio-processor.py        # PySpark script to process data into MinIO
+        └── spark-iceberg-processor.py      # PySpark script to process data into Iceberg/MinIO
 ```
 
 ## Deployment
@@ -53,7 +75,7 @@ This starts:
   ```sh
   docker exec -it spark-master spark-submit \
   --master spark://spark-master:7077 \
-  /opt/bitnami/spark/apps/sample/spark-minio-job.py
+  /opt/bitnami/spark/apps/spark-minio-processor.py
   ```
 
 There are two data lake logics: Copy-on-Write (CoW) vs Merge-on-Read (MoR). The default is already CoW.

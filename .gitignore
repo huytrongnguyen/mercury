@@ -1,6 +1,6 @@
 .DS_Store
 data
-jobs/spark/conf/*
-!jobs/spark/conf/spark-defaults.conf
-jobs/spark/libs/*
+spark/conf/*
+!spark/conf/spark-defaults.conf
+spark/libs/*
 logs

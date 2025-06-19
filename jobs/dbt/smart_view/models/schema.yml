@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: stg_installs
+  - name: installs
     description: Unified and cleaned installs data from AppsFlyer
     columns:
       - name: event_time

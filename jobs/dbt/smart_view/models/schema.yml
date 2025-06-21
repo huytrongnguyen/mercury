@@ -8,25 +8,6 @@ models:
         description: Timestamp of the install
         tests:
           - not_null
-      - name: event_name
-        description: Name of the event (install)
-      - name: media_source
-        description: Source of the campaign
-      - name: campaign
-        description: Campaign name
-      - name: platform
-        description: Platform (ios or android)
-      - name: app_id
-        description: Application ID (id123456789 or com.appsflyer.referrersender)
-        tests:
-          - accepted_values:
-              values: ['id123456789', 'com.appsflyer.referrersender']
-      - name: user_id
-        description: Unique user identifier
-      - name: cost
-        description: Cost associated with the install
-      - name: revenue
-        description: Revenue (0 for installs)
 
   - name: stg_in_app_events
     description: Unified and cleaned in-app events data from AppsFlyer

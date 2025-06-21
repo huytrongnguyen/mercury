@@ -42,7 +42,7 @@ mercury/
     │           ├── schema.yml
     │           ├── standardize/
     │           ├── golden/
-    |           └── marts/
+    |           └── insights/
     └── spark
         ├── spark-minio-processor.py        # PySpark script to process data into MinIO
         └── spark-iceberg-processor.py      # PySpark script to process data into Iceberg/MinIO
